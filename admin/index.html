@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CEI Corporation — Panel de Edición</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --black:#0A0908;--dark:#141210;--card:#1E1C19;--card2:#252220;
+  --gold:#C9A84C;--gold-l:#E8C97A;--gold-d:#9B7B2E;
+  --white:#F8F6F2;--muted:#6B6762;--border:rgba(255,255,255,.08);
+  --green:#25D366;--red:#E74C3C;
+}
+body{background:var(--dark);color:var(--white);font-family:'Inter',sans-serif;min-height:100vh;}
+input,select,textarea{font-family:'Inter',sans-serif;}
+
+/* ── LOGIN ── */
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;}
+.login-box{
+  width:100%;max-width:420px;
+  background:var(--card);border:1px solid var(--border);
+  border-top:3px solid var(--gold);padding:48px 40px;
+}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo h1{font-size:1.8rem;font-weight:700;letter-spacing:4px;color:var(--white);}
+.login-logo span{color:var(--gold);}
+.login-logo p{font-size:.75rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:6px;}
+.login-field{margin-bottom:16px;}
+.login-field label{display:block;font-size:.68rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.login-field input{
+  width:100%;padding:12px 14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);color:var(--white);
+  font-size:.9rem;outline:none;transition:.2s;
+}
+.login-field input:focus{border-color:var(--gold);background:rgba(201,168,76,.05);}
+.login-field input::placeholder{color:var(--muted);}
+.btn-login{
+  width:100%;padding:14px;margin-top:8px;
+  background:var(--gold);color:var(--black);border:none;
+  font-size:.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  cursor:pointer;transition:.2s;
+}
+.btn-login:hover{background:var(--gold-l);}
+.login-help{margin-top:20px;padding:14px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.15);}
+.login-help p{font-size:.75rem;color:var(--muted);line-height:1.6;}
+.login-help a{color:var(--gold);text-decoration:none;}
+.login-error{display:none;margin-top:12px;padding:10px 14px;background:rgba(231,76,60,.1);border-left:2px solid var(--red);font-size:.8rem;color:#ff8a7a;}
+
+/* ── APP ── */
+#app{display:none;min-height:100vh;}
+
+/* TOP BAR */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:var(--black);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;height:60px;
+}
+.topbar-logo{font-size:1rem;font-weight:700;letter-spacing:3px;color:var(--white);}
+.topbar-logo span{color:var(--gold);}
+.topbar-right{display:flex;align-items:center;gap:14px;}
+.topbar-site{font-size:.72rem;color:var(--muted);text-decoration:none;}
+.topbar-site:hover{color:var(--gold);}
+.btn-save-top{
+  padding:8px 20px;background:var(--gold);color:var(--black);border:none;
+  font-size:.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  cursor:pointer;transition:.2s;
+}
+.btn-save-top:hover{background:var(--gold-l);}
+.btn-save-top:disabled{opacity:.5;cursor:not-allowed;}
+.btn-logout{
+  padding:8px 16px;background:transparent;color:var(--muted);
+  border:1px solid var(--border);font-size:.72rem;font-weight:500;
+  cursor:pointer;transition:.2s;
+}
+.btn-logout:hover{border-color:var(--red);color:#ff8a7a;}
+
+/* SIDEBAR */
+.layout{display:flex;padding-top:60px;min-height:100vh;}
+.sidebar{
+  width:220px;flex-shrink:0;
+  background:var(--black);border-right:1px solid var(--border);
+  padding:24px 0;position:fixed;top:60px;bottom:0;overflow-y:auto;
+}
+.sidebar-section{padding:0 16px;margin-bottom:8px;}
+.sidebar-label{font-size:.6rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);padding:0 8px;margin-bottom:6px;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;cursor:pointer;transition:.15s;
+  font-size:.82rem;color:rgba(255,255,255,.55);border-left:2px solid transparent;
+}
+.nav-item:hover{color:var(--white);background:rgba(255,255,255,.04);}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,.06);}
+.nav-icon{font-size:1rem;flex-shrink:0;}
+
+/* MAIN CONTENT */
+.main{margin-left:220px;padding:32px 40px;flex:1;}
+.section-panel{display:none;}
+.section-panel.active{display:block;}
+.panel-title{
+  font-size:1.4rem;font-weight:700;margin-bottom:4px;
+  border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:24px;
+}
+.panel-title span{color:var(--gold);}
+
+/* FIELDS */
+.field-group{
+  background:var(--card);border:1px solid var(--border);
+  padding:24px;margin-bottom:20px;
+}
+.field-group-title{font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.field-row.full{grid-template-columns:1fr;}
+.field{margin-bottom:16px;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:.68rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.field input,.field select,.field textarea{
+  width:100%;padding:11px 13px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);color:var(--white);
+  font-size:.88rem;outline:none;transition:.2s;resize:vertical;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);background:rgba(201,168,76,.04);}
+.field input::placeholder{color:var(--muted);}
+.field select option{background:var(--card2);}
+
+/* PROPERTY CARDS */
+.prop-editor{
+  background:var(--card);border:1px solid var(--border);
+  padding:20px;margin-bottom:16px;position:relative;
+}
+.prop-editor-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;
+}
+.prop-editor-title{font-size:.9rem;font-weight:600;color:var(--white);}
+.prop-editor-badge{
+  font-size:.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  padding:3px 10px;
+}
+.badge-venta{background:rgba(201,168,76,.15);color:var(--gold);}
+.badge-alquiler{background:rgba(37,211,102,.12);color:#25D366;}
+.badge-comercial{background:rgba(255,255,255,.06);color:var(--muted);}
+.prop-editor-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+
+/* STATUS */
+.status-bar{
+  position:fixed;bottom:0;left:220px;right:0;
+  background:var(--black);border-top:1px solid var(--border);
+  padding:12px 40px;display:flex;align-items:center;gap:12px;
+  font-size:.75rem;color:var(--muted);z-index:100;
+}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);}
+.status-dot.saving{background:var(--gold);animation:pulse .8s infinite;}
+.status-dot.error{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:60px;right:32px;z-index:9999;
+  padding:14px 20px;border-left:3px solid var(--gold);
+  background:var(--card2);border:1px solid rgba(201,168,76,.3);
+  border-left-width:3px;font-size:.82rem;
+  transform:translateX(120%);transition:.35s;display:flex;align-items:center;gap:10px;
+}
+.toast.show{transform:translateX(0);}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .main{margin-left:0;padding:20px 16px;}
+  .field-row{grid-template-columns:1fr;}
+  .prop-editor-grid{grid-template-columns:1fr;}
+  .topbar{padding:0 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login">
+  <div class="login-box">
+    <div class="login-logo">
+      <h1>C<span>E</span>I</h1>
+      <p>Panel de Edición</p>
+    </div>
+    <div class="login-field">
+      <label>Usuario de GitHub</label>
+      <input type="text" id="gh-user" placeholder="tu-usuario" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Nombre del Repositorio</label>
+      <input type="text" id="gh-repo" value="cei-website" placeholder="cei-website">
+    </div>
+    <div class="login-field">
+      <label>Token de GitHub</label>
+      <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="current-password">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Entrar al Panel →</button>
+    <div class="login-error" id="login-error">Token inválido o repositorio no encontrado. Verifica tus datos.</div>
+    <div class="login-help">
+      <p>¿No tienes token? <a href="https://github.com/settings/tokens/new?scopes=repo&description=CEI+Panel" target="_blank">Clic aquí para crear uno gratis →</a><br>
+      Marca la casilla <strong>"repo"</strong> y dale clic a "Generate token".</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-logo">C<span>E</span>I &nbsp;<span style="font-size:.6rem;color:var(--muted);font-weight:400;letter-spacing:2px;">PANEL DE EDICIÓN</span></div>
+    <div class="topbar-right">
+      <a id="site-link" href="#" target="_blank" class="topbar-site">↗ Ver sitio en vivo</a>
+      <button class="btn-save-top" id="btn-save-top" onclick="saveAll()" disabled>Guardar Cambios</button>
+      <button class="btn-logout" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <!-- Layout -->
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">General</div>
+        <div class="nav-item active" onclick="showSection('contacto', this)">
+          <span class="nav-icon">📞</span> Contacto
+        </div>
+        <div class="nav-item" onclick="showSection('hero', this)">
+          <span class="nav-icon">✨</span> Hero / Portada
+        </div>
+        <div class="nav-item" onclick="showSection('estadisticas', this)">
+          <span class="nav-icon">📊</span> Estadísticas
+        </div>
+      </div>
+      <div class="sidebar-section" style="margin-top:16px;">
+        <div class="sidebar-label">Propiedades</div>
+        <div class="nav-item" onclick="showSection('propiedades', this)">
+          <span class="nav-icon">🏠</span> Todas las Propiedades
+        </div>
+      </div>
+      <div class="sidebar-section" style="margin-top:16px;">
+        <div class="sidebar-label">Servicios</div>
+        <div class="nav-item" onclick="showSection('servicios', this)">
+          <span class="nav-icon">🔑</span> Tarjetas de Servicios
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+      <!-- CONTACTO -->
+      <div class="section-panel active" id="section-contacto">
+        <div class="panel-title">Información de <span>Contacto</span></div>
+        <div class="field-group">
+          <div class="field-group-title">Datos de Contacto</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Teléfono</label>
+              <input type="text" id="f-phone" placeholder="+502 0000-0000" oninput="markDirty()">
+            </div>
+            <div class="field">
+              <label>Número de WhatsApp (solo dígitos)</label>
+              <input type="text" id="f-whatsapp" placeholder="50200000000" oninput="markDirty()">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Correo Electrónico</label>
+              <input type="email" id="f-email" placeholder="info@ceicorporation.com" oninput="markDirty()">
+            </div>
+            <div class="field">
+              <label>Dirección / Oficinas</label>
+              <input type="text" id="f-address" placeholder="Ciudad de Guatemala" oninput="markDirty()">
+            </div>
+          </div>
+          <div class="field-row full">
+            <div class="field">
+              <label>Horario de Atención</label>
+              <input type="text" id="f-hours" placeholder="Lun–Vie 8am–6pm · Sáb 9am–1pm" oninput="markDirty()">
+            </div>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-group-title">Mensaje de WhatsApp (texto automático)</div>
+          <div class="field">
+            <label>Mensaje que recibe CEI cuando alguien escribe por WhatsApp</label>
+            <input type="text" id="f-wa-msg" placeholder="Hola CEI Corporation, me interesa una propiedad." oninput="markDirty()">
+          </div>
+        </div>
+      </div>
+
+      <!-- HERO -->
+      <div class="section-panel" id="section-hero">
+        <div class="panel-title">Hero / <span>Portada</span></div>
+        <div class="field-group">
+          <div class="field-group-title">Textos Principales</div>
+          <div class="field">
+            <label>Eslogan (aparece en dorado bajo el título)</label>
+            <input type="text" id="f-slogan" placeholder="✦ Tu espacio ideal, más cerca de lo que imaginas ✦" oninput="markDirty()">
+          </div>
+          <div class="field">
+            <label>Descripción del Hero</label>
+            <textarea id="f-hero-desc" rows="3" oninput="markDirty()" placeholder="En CEI Corporation encontrarás..."></textarea>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Subtítulo de país / experiencia</label>
+              <input type="text" id="f-hero-sub" placeholder="Guatemala · Expertos en Propiedades" oninput="markDirty()">
+            </div>
+            <div class="field">
+              <label>Texto del copyright en footer</label>
+              <input type="text" id="f-copyright" placeholder="© 2025 CEI Corporation. Todos los derechos reservados." oninput="markDirty()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ESTADÍSTICAS -->
+      <div class="section-panel" id="section-estadisticas">
+        <div class="panel-title">Estadísticas / <span>Contadores</span></div>
+        <div class="field-group">
+          <div class="field-group-title">Números que aparecen animados en el Hero</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Propiedades (número)</label>
+              <input type="number" id="f-stat1" placeholder="350" oninput="markDirty()">
+            </div>
+            <div class="field">
+              <label>Clientes satisfechos (número)</label>
+              <input type="number" id="f-stat2" placeholder="820" oninput="markDirty()">
+            </div>
+            <div class="field">
+              <label>Años de experiencia (número)</label>
+              <input type="number" id="f-stat3" placeholder="12" oninput="markDirty()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROPIEDADES -->
+      <div class="section-panel" id="section-propiedades">
+        <div class="panel-title">Catálogo de <span>Propiedades</span></div>
+        <div id="props-container">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- SERVICIOS -->
+      <div class="section-panel" id="section-servicios">
+        <div class="panel-title">Tarjetas de <span>Servicios</span></div>
+        <div id="svcs-container">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /layout -->
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-text">Listo</span>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+let ST = { token:'', user:'', repo:'', html:'', sha:'', dirty:false };
+
+// ── UTILS ──
+function toast(msg, ok=true){
+  const t=document.getElementById('toast');
+  t.innerHTML=(ok?'✅ ':'❌ ')+msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+function setStatus(msg, state='ok'){
+  document.getElementById('status-text').textContent=msg;
+  const d=document.getElementById('status-dot');
+  d.className='status-dot'+(state==='saving'?' saving':state==='error'?' error':'');
+}
+function markDirty(){
+  ST.dirty=true;
+  document.getElementById('btn-save-top').disabled=false;
+}
+function showSection(id, el){
+  document.querySelectorAll('.section-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+}
+
+// ── AUTH ──
+async function doLogin(){
+  const user=document.getElementById('gh-user').value.trim();
+  const repo=document.getElementById('gh-repo').value.trim();
+  const token=document.getElementById('gh-token').value.trim();
+  if(!user||!repo||!token){toast('Completa todos los campos','❌');return;}
+
+  document.querySelector('.btn-login').textContent='Cargando...';
+  document.getElementById('login-error').style.display='none';
+
+  try{
+    const res=await fetch(`https://api.github.com/repos/${user}/${repo}/contents/index.html`,{
+      headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github.v3+json'}
+    });
+    if(!res.ok) throw new Error('Not found');
+    const data=await res.json();
+
+    ST.token=token; ST.user=user; ST.repo=repo;
+    ST.sha=data.sha;
+    ST.html=decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
+
+    sessionStorage.setItem('cei_auth', JSON.stringify({token,user,repo}));
+
+    document.getElementById('login').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('site-link').href=`https://${repo}.netlify.app`;
+
+    populateFields();
+    setStatus('Página cargada correctamente');
+    toast('Bienvenido al panel CEI 🏠');
+
+  } catch(e){
+    document.getElementById('login-error').style.display='block';
+    document.querySelector('.btn-login').textContent='Entrar al Panel →';
+  }
+}
+
+function doLogout(){
+  sessionStorage.removeItem('cei_auth');
+  document.getElementById('app').style.display='none';
+  document.getElementById('login').style.display='flex';
+  document.querySelector('.btn-login').textContent='Entrar al Panel →';
+  ST={token:'',user:'',repo:'',html:'',sha:'',dirty:false};
+}
+
+// Auto-login if session exists
+window.addEventListener('load',()=>{
+  const saved=sessionStorage.getItem('cei_auth');
+  if(saved){
+    const d=JSON.parse(saved);
+    document.getElementById('gh-user').value=d.user;
+    document.getElementById('gh-repo').value=d.repo;
+    document.getElementById('gh-token').value=d.token;
+  }
+});
+
+// ── PARSE & POPULATE ──
+function get(pattern, html=ST.html, idx=1){
+  const m=html.match(pattern);
+  return m?m[idx]:'';
+}
+
+function populateFields(){
+  // Contact
+  document.getElementById('f-phone').value = get(/<strong>Teléfono<\/strong><span>([^<]+)<\/span>/);
+  document.getElementById('f-whatsapp').value = get(/wa\.me\/(\d+)\?/);
+  document.getElementById('f-email').value = get(/<strong>Correo<\/strong><span>([^<]+)<\/span>/);
+  document.getElementById('f-address').value = get(/<strong>Oficinas<\/strong><span>([^<]+)<\/span>/);
+  document.getElementById('f-hours').value = get(/<strong>Horario<\/strong><span>([^<]+)<\/span>/);
+  document.getElementById('f-wa-msg').value = decodeURIComponent(get(/wa\.me\/\d+\?text=([^"]+)"/)||'').replace(/\+/g,' ');
+
+  // Hero
+  const sloganMatch = ST.html.match(/✦ ([^✦]+) ✦/);
+  document.getElementById('f-slogan').value = sloganMatch ? `✦ ${sloganMatch[1].trim()} ✦` : '';
+  document.getElementById('f-hero-desc').value = get(/<p class="hero-desc">([^<]+)<\/p>/);
+  document.getElementById('f-hero-sub').value = get(/<div class="hero-tagline-bot">([^<]+)<\/div>/);
+  document.getElementById('f-copyright').value = get(/<p>(© [^<]+)<\/p>/);
+
+  // Stats
+  document.getElementById('f-stat1').value = get(/count\(document\.getElementById\('s1'\),(\d+),/);
+  document.getElementById('f-stat2').value = get(/count\(document\.getElementById\('s2'\),(\d+),/);
+  document.getElementById('f-stat3').value = get(/count\(document\.getElementById\('s3'\),(\d+),/);
+
+  // Properties
+  populateProperties();
+  populateServices();
+}
+
+function populateProperties(){
+  const container=document.getElementById('props-container');
+  container.innerHTML='';
+  const cards=[...ST.html.matchAll(/<div class="prop-card[^"]*"[^>]*data-type="([^"]+)"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/g)];
+
+  // Manual parse — each prop-card block
+  const priceRx=/<div class="prop-price">([^<]+)<sub>/g;
+  const nameRx=/<div class="prop-name">([^<]+)<\/div>/g;
+  const locRx=/<div class="prop-loc">[^📍]*📍\s*([^<]+)<\/div>/g;
+  const typeRx=/data-type="([^"]+)"/g;
+  const tagRx=/<span class="prop-type-tag[^"]*">([^<]+)<\/span>/g;
+
+  let prices=[...ST.html.matchAll(/<div class="prop-price">([^<]+)<sub>/g)].map(m=>m[1].trim());
+  let names=[...ST.html.matchAll(/<div class="prop-name">([^<]+)<\/div>/g)].map(m=>m[1].trim());
+  let locs=[...ST.html.matchAll(/<div class="prop-loc">[^📍]*📍\s*([^<]+)<\/div>/g)].map(m=>m[1].trim());
+  let types=[...ST.html.matchAll(/data-type="([^"]+)"/g)].map(m=>m[1].trim());
+  let tags=[...ST.html.matchAll(/<span class="prop-type-tag[^"]*">([^<]+)<\/span>/g)].map(m=>m[1].trim());
+
+  const count=Math.min(prices.length,names.length,locs.length);
+  if(count===0){container.innerHTML='<p style="color:var(--muted);padding:20px;">No se encontraron propiedades. Verifica que el archivo index.html esté correcto.</p>';return;}
+
+  for(let i=0;i<count;i++){
+    const type=types[i]||'venta';
+    const tagLabel=tags[i]||'Venta';
+    const badgeClass=type==='alquiler'?'badge-alquiler':type==='comercial'?'badge-comercial':'badge-venta';
+
+    container.innerHTML+=`
+    <div class="prop-editor">
+      <div class="prop-editor-header">
+        <div class="prop-editor-title">Propiedad ${i+1}</div>
+        <span class="prop-editor-badge ${badgeClass}">${tagLabel}</span>
+      </div>
+      <div class="prop-editor-grid">
+        <div class="field">
+          <label>Nombre</label>
+          <input type="text" id="prop-name-${i}" value="${names[i]||''}" oninput="markDirty()">
+        </div>
+        <div class="field">
+          <label>Precio</label>
+          <input type="text" id="prop-price-${i}" value="${prices[i]||''}" oninput="markDirty()">
+        </div>
+        <div class="field">
+          <label>Ubicación</label>
+          <input type="text" id="prop-loc-${i}" value="${locs[i]||''}" oninput="markDirty()">
+        </div>
+      </div>
+    </div>`;
+  }
+}
+
+function populateServices(){
+  const container=document.getElementById('svcs-container');
+  container.innerHTML='';
+  let titles=[...ST.html.matchAll(/<div class="svc-card[^>]*>[\s\S]*?<h3>([^<]+)<\/h3>/g)].map(m=>m[1].trim());
+  let descs=[...ST.html.matchAll(/<div class="svc-card[\s\S]*?<h3>[^<]+<\/h3>\s*<p>([^<]+)<\/p>/g)].map(m=>m[1].trim());
+  const count=Math.min(titles.length,descs.length);
+  if(count===0){container.innerHTML='<p style="color:var(--muted);padding:20px;">No se encontraron servicios.</p>';return;}
+  for(let i=0;i<count;i++){
+    container.innerHTML+=`
+    <div class="field-group">
+      <div class="field-group-title">Servicio ${i+1}</div>
+      <div class="field"><label>Título</label><input type="text" id="svc-title-${i}" value="${titles[i]||''}" oninput="markDirty()"></div>
+      <div class="field"><label>Descripción</label><textarea id="svc-desc-${i}" rows="2" oninput="markDirty()">${descs[i]||''}</textarea></div>
+    </div>`;
+  }
+}
+
+// ── APPLY CHANGES ──
+function applyChanges(){
+  let h=ST.html;
+
+  // Contact
+  const phone=document.getElementById('f-phone').value;
+  const wa=document.getElementById('f-whatsapp').value;
+  const email=document.getElementById('f-email').value;
+  const address=document.getElementById('f-address').value;
+  const hours=document.getElementById('f-hours').value;
+  const waMsg=document.getElementById('f-wa-msg').value;
+  const slogan=document.getElementById('f-slogan').value;
+  const desc=document.getElementById('f-hero-desc').value;
+  const sub=document.getElementById('f-hero-sub').value;
+  const copy=document.getElementById('f-copyright').value;
+  const s1=document.getElementById('f-stat1').value;
+  const s2=document.getElementById('f-stat2').value;
+  const s3=document.getElementById('f-stat3').value;
+
+  if(phone) h=h.replace(/(<strong>Teléfono<\/strong><span>)([^<]+)(<\/span>)/,`$1${phone}$3`);
+  if(wa){
+    h=h.replace(/wa\.me\/\d+\?/g,`wa.me/${wa}?`);
+    h=h.replace(/tel:[\d+\s-]+"/,`tel:${wa}"`);
+  }
+  if(waMsg) h=h.replace(/(wa\.me\/\d+\?text=)[^"]+(")/g,(m,p1,p2)=>p1+encodeURIComponent(waMsg)+p2);
+  if(email) h=h.replace(/(<strong>Correo<\/strong><span>)([^<]+)(<\/span>)/,`$1${email}$3`);
+  if(address) h=h.replace(/(<strong>Oficinas<\/strong><span>)([^<]+)(<\/span>)/,`$1${address}$3`);
+  if(hours) h=h.replace(/(<strong>Horario<\/strong><span>)([^<]+)(<\/span>)/,`$1${hours}$3`);
+  if(slogan) h=h.replace(/✦ [^✦]+ ✦/g, slogan);
+  if(desc) h=h.replace(/(<p class="hero-desc">)([^<]+)(<\/p>)/,`$1${desc}$3`);
+  if(sub) h=h.replace(/(<div class="hero-tagline-bot">)([^<]+)(<\/div>)/,`$1${sub}$3`);
+  if(copy) h=h.replace(/(© [^<]+)(?=<\/p>)/,copy);
+  if(s1) h=h.replace(/(count\(document\.getElementById\('s1'\),)\d+(,)/,`$1${s1}$2`);
+  if(s2) h=h.replace(/(count\(document\.getElementById\('s2'\),)\d+(,)/,`$1${s2}$2`);
+  if(s3) h=h.replace(/(count\(document\.getElementById\('s3'\),)\d+(,)/,`$1${s3}$2`);
+
+  // Properties
+  let priceMatches=[...h.matchAll(/<div class="prop-price">([^<]+)<sub>/g)];
+  let nameMatches=[...h.matchAll(/<div class="prop-name">([^<]+)<\/div>/g)];
+  let locMatches=[...h.matchAll(/<div class="prop-loc">[^📍]*📍\s*([^<]+)<\/div>/g)];
+  const propCount=Math.min(priceMatches.length,nameMatches.length,locMatches.length);
+  for(let i=0;i<propCount;i++){
+    const newName=document.getElementById(`prop-name-${i}`)?.value;
+    const newPrice=document.getElementById(`prop-price-${i}`)?.value;
+    const newLoc=document.getElementById(`prop-loc-${i}`)?.value;
+    if(newName&&nameMatches[i]) h=h.replace(nameMatches[i][0],`<div class="prop-name">${newName}</div>`);
+    if(newPrice&&priceMatches[i]) h=h.replace(priceMatches[i][0],`<div class="prop-price">${newPrice}<sub>`);
+    if(newLoc&&locMatches[i]) h=h.replace(locMatches[i][0],`<div class="prop-loc">📍 ${newLoc}</div>`);
+  }
+
+  // Services
+  let svcTitles=[...h.matchAll(/(<div class="svc-card[\s\S]*?<h3>)([^<]+)(<\/h3>)/g)];
+  for(let i=0;i<svcTitles.length;i++){
+    const v=document.getElementById(`svc-title-${i}`)?.value;
+    if(v) h=h.replace(svcTitles[i][0],`${svcTitles[i][1]}${v}${svcTitles[i][3]}`);
+  }
+
+  return h;
+}
+
+// ── SAVE ──
+async function saveAll(){
+  setStatus('Guardando...','saving');
+  document.getElementById('btn-save-top').disabled=true;
+  document.getElementById('btn-save-top').textContent='Guardando...';
+
+  const newHtml=applyChanges();
+
+  // Encode safely for base64
+  const encoded=btoa(unescape(encodeURIComponent(newHtml)));
+
+  try{
+    const res=await fetch(`https://api.github.com/repos/${ST.user}/${ST.repo}/contents/index.html`,{
+      method:'PUT',
+      headers:{'Authorization':`token ${ST.token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        message:'✏️ Actualización desde panel CEI',
+        content:encoded,
+        sha:ST.sha
+      })
+    });
+
+    if(!res.ok) throw new Error('GitHub API error: '+res.status);
+    const data=await res.json();
+    ST.sha=data.content.sha;
+    ST.html=newHtml;
+    ST.dirty=false;
+    setStatus('Guardado · Netlify publicará en ~30 segundos');
+    document.getElementById('btn-save-top').textContent='Guardar Cambios';
+    toast('¡Cambios publicados! Tu sitio se actualiza en 30 segundos.');
+
+  } catch(e){
+    setStatus('Error al guardar: '+e.message,'error');
+    document.getElementById('btn-save-top').disabled=false;
+    document.getElementById('btn-save-top').textContent='Guardar Cambios';
+    toast('Error al guardar: '+e.message, false);
+  }
+}
+
+// Warn before leaving with unsaved changes
+window.onbeforeunload=e=>{if(ST.dirty){e.preventDefault();e.returnValue='';}}
+</script>
+</body>
+</html>
