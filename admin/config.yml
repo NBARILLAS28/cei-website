@@ -1,0 +1,7 @@
+backend:
+  name: github
+  repo: TU-USUARIO/cei-website
+  branch: main
+
+media_folder: "images"
+public_folder: "/images"
