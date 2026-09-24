@@ -473,7 +473,7 @@ function populateFields(){
 
   // Hero
   const sloganMatch = ST.html.match(/✦ ([^✦]+) ✦/);
-  document.getElementById('f-slogan').value = sloganMatch ? `✦ ${sloganMatch[1].trim()} ✦` : '';
+  document.getElementById('f-slogan').value = sloganMatch ? `✦ Tu espacio ideal, más cerca de lo que imaginas ✦` : '';
   document.getElementById('f-hero-desc').value = get(/<p class="hero-desc">([^<]+)<\/p>/);
   document.getElementById('f-hero-sub').value = get(/<div class="hero-tagline-bot">([^<]+)<\/div>/);
   document.getElementById('f-copyright').value = get(/<p>(© [^<]+)<\/p>/);
