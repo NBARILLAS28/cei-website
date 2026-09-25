@@ -473,7 +473,7 @@ function populateFields(){
 
   // Hero
   const sloganMatch = ST.html.match(/✦ ([^✦]+) ✦/);
-  document.getElementById('f-slogan').value = sloganMatch ? `✦ Tu espacio ideal, más cerca de lo que imaginas ✦` : '';
+  document.getElementById('f-slogan').value = sloganMatch ? `✦ ${sloganMatch[1].trim()} ✦` : '';
   document.getElementById('f-hero-desc').value = get(/<p class="hero-desc">([^<]+)<\/p>/);
   document.getElementById('f-hero-sub').value = get(/<div class="hero-tagline-bot">([^<]+)<\/div>/);
   document.getElementById('f-copyright').value = get(/<p>(© [^<]+)<\/p>/);
@@ -491,51 +491,100 @@ function populateFields(){
 function populateProperties(){
   const container=document.getElementById('props-container');
   container.innerHTML='';
-  const cards=[...ST.html.matchAll(/<div class="prop-card[^"]*"[^>]*data-type="([^"]+)"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/g)];
-
-  // Manual parse — each prop-card block
-  const priceRx=/<div class="prop-price">([^<]+)<sub>/g;
-  const nameRx=/<div class="prop-name">([^<]+)<\/div>/g;
-  const locRx=/<div class="prop-loc">[^📍]*📍\s*([^<]+)<\/div>/g;
-  const typeRx=/data-type="([^"]+)"/g;
-  const tagRx=/<span class="prop-type-tag[^"]*">([^<]+)<\/span>/g;
 
   let prices=[...ST.html.matchAll(/<div class="prop-price">([^<]+)<sub>/g)].map(m=>m[1].trim());
   let names=[...ST.html.matchAll(/<div class="prop-name">([^<]+)<\/div>/g)].map(m=>m[1].trim());
   let locs=[...ST.html.matchAll(/<div class="prop-loc">[^📍]*📍\s*([^<]+)<\/div>/g)].map(m=>m[1].trim());
   let types=[...ST.html.matchAll(/data-type="([^"]+)"/g)].map(m=>m[1].trim());
-  let tags=[...ST.html.matchAll(/<span class="prop-type-tag[^"]*">([^<]+)<\/span>/g)].map(m=>m[1].trim());
+  let tags=[...ST.html.matchAll(/<span class="prop-tag[^"]*">([^<]+)<\/span>/g)].map(m=>m[1].trim());
 
   const count=Math.min(prices.length,names.length,locs.length);
-  if(count===0){container.innerHTML='<p style="color:var(--muted);padding:20px;">No se encontraron propiedades. Verifica que el archivo index.html esté correcto.</p>';return;}
+  if(count===0){container.innerHTML='<p style="color:var(--muted);padding:20px;">No se encontraron propiedades.</p>';}
 
   for(let i=0;i<count;i++){
     const type=types[i]||'venta';
     const tagLabel=tags[i]||'Venta';
     const badgeClass=type==='alquiler'?'badge-alquiler':type==='comercial'?'badge-comercial':'badge-venta';
-
     container.innerHTML+=`
-    <div class="prop-editor">
+    <div class="prop-editor" id="prop-block-${i}">
       <div class="prop-editor-header">
         <div class="prop-editor-title">Propiedad ${i+1}</div>
-        <span class="prop-editor-badge ${badgeClass}">${tagLabel}</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="prop-editor-badge ${badgeClass}">${tagLabel}</span>
+          <button onclick="removeProp(${i})" style="background:rgba(231,76,60,.15);color:#ff8a7a;border:1px solid rgba(231,76,60,.3);padding:4px 10px;font-size:11px;cursor:pointer;border-radius:3px;">✕ Eliminar</button>
+        </div>
       </div>
       <div class="prop-editor-grid">
-        <div class="field">
-          <label>Nombre</label>
-          <input type="text" id="prop-name-${i}" value="${names[i]||''}" oninput="markDirty()">
-        </div>
-        <div class="field">
-          <label>Precio</label>
-          <input type="text" id="prop-price-${i}" value="${prices[i]||''}" oninput="markDirty()">
-        </div>
-        <div class="field">
-          <label>Ubicación</label>
-          <input type="text" id="prop-loc-${i}" value="${locs[i]||''}" oninput="markDirty()">
-        </div>
+        <div class="field"><label>Nombre</label><input type="text" id="prop-name-${i}" value="${(names[i]||'').replace(/"/g,'&quot;')}" oninput="markDirty()"></div>
+        <div class="field"><label>Precio</label><input type="text" id="prop-price-${i}" value="${(prices[i]||'').replace(/"/g,'&quot;')}" oninput="markDirty()"></div>
+        <div class="field"><label>Ubicación</label><input type="text" id="prop-loc-${i}" value="${(locs[i]||'').replace(/"/g,'&quot;')}" oninput="markDirty()"></div>
       </div>
     </div>`;
   }
+
+  // Add new property button
+  container.innerHTML+=`
+  <div style="margin-top:16px;">
+    <button onclick="addNewProp()" style="width:100%;padding:14px;background:transparent;border:1px dashed rgba(201,168,76,.4);color:var(--gold);font-size:.8rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:.2s;" onmouseover="this.style.background='rgba(201,168,76,.08)'" onmouseout="this.style.background='transparent'">
+      + Agregar Nueva Propiedad
+    </button>
+  </div>`;
+
+  // Store count globally
+  window._propCount = count;
+}
+
+function addNewProp(){
+  const container=document.getElementById('props-container');
+  const btn=container.querySelector('div[style*="margin-top:16px"]');
+  const i=window._propCount||0;
+  window._propCount=(window._propCount||0)+1;
+
+  const newBlock=document.createElement('div');
+  newBlock.className='prop-editor';
+  newBlock.id=`prop-block-${i}`;
+  newBlock.innerHTML=`
+    <div class="prop-editor-header">
+      <div class="prop-editor-title">Propiedad ${i+1} <span style="font-size:10px;color:var(--gold);margin-left:8px;">NUEVA</span></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="prop-type-${i}" onchange="markDirty()" style="background:var(--card2);color:var(--white);border:1px solid rgba(255,255,255,.1);padding:4px 8px;font-size:11px;">
+          <option value="venta">Venta</option>
+          <option value="alquiler">Alquiler</option>
+          <option value="comercial">Comercial</option>
+        </select>
+        <button onclick="this.closest('.prop-editor').remove();window._propCount--;markDirty();" style="background:rgba(231,76,60,.15);color:#ff8a7a;border:1px solid rgba(231,76,60,.3);padding:4px 10px;font-size:11px;cursor:pointer;border-radius:3px;">✕ Cancelar</button>
+      </div>
+    </div>
+    <div class="prop-editor-grid">
+      <div class="field"><label>Nombre de la Propiedad</label><input type="text" id="prop-name-${i}" placeholder="Ej: Casa Residencial Moderna" oninput="markDirty()"></div>
+      <div class="field"><label>Precio (con Q)</label><input type="text" id="prop-price-${i}" placeholder="Q 850,000" oninput="markDirty()"></div>
+      <div class="field"><label>Ubicación</label><input type="text" id="prop-loc-${i}" placeholder="Zona 15, Guatemala" oninput="markDirty()"></div>
+    </div>
+    <div class="prop-editor-grid" style="margin-top:12px;">
+      <div class="field"><label>Habitaciones</label><input type="text" id="prop-f1-${i}" placeholder="🛏 4 hab." oninput="markDirty()"></div>
+      <div class="field"><label>Baños</label><input type="text" id="prop-f2-${i}" placeholder="🚿 3 baños" oninput="markDirty()"></div>
+      <div class="field"><label>Área</label><input type="text" id="prop-f3-${i}" placeholder="📐 280 m²" oninput="markDirty()"></div>
+    </div>
+    <div class="field" style="margin-top:12px;"><label>Descripción breve</label><textarea id="prop-desc-${i}" rows="2" placeholder="Descripción de la propiedad..." oninput="markDirty()" style="width:100%;padding:11px 13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:var(--font-sans);font-size:.88rem;outline:none;resize:vertical;"></textarea></div>`;
+
+  container.insertBefore(newBlock, btn);
+  markDirty();
+  newBlock.scrollIntoView({behavior:'smooth'});
+}
+
+function removeProp(i){
+  if(!confirm('¿Eliminar esta propiedad de la página?')) return;
+  // Mark for removal in applyChanges
+  const block=document.getElementById(`prop-block-${i}`);
+  if(block){
+    block.style.opacity='.3';
+    block.style.pointerEvents='none';
+    block.dataset.deleted='true';
+    // Clear values so it saves empty
+    const nameEl=document.getElementById(`prop-name-${i}`);
+    if(nameEl) nameEl.value='__DELETE__';
+  }
+  markDirty();
 }
 
 function populateServices(){
@@ -590,7 +639,7 @@ function applyChanges(){
   if(s2) h=h.replace(/(count\(document\.getElementById\('s2'\),)\d+(,)/,`$1${s2}$2`);
   if(s3) h=h.replace(/(count\(document\.getElementById\('s3'\),)\d+(,)/,`$1${s3}$2`);
 
-  // Properties
+  // Properties — edit existing + add new
   let priceMatches=[...h.matchAll(/<div class="prop-price">([^<]+)<sub>/g)];
   let nameMatches=[...h.matchAll(/<div class="prop-name">([^<]+)<\/div>/g)];
   let locMatches=[...h.matchAll(/<div class="prop-loc">[^📍]*📍\s*([^<]+)<\/div>/g)];
@@ -599,9 +648,47 @@ function applyChanges(){
     const newName=document.getElementById(`prop-name-${i}`)?.value;
     const newPrice=document.getElementById(`prop-price-${i}`)?.value;
     const newLoc=document.getElementById(`prop-loc-${i}`)?.value;
-    if(newName&&nameMatches[i]) h=h.replace(nameMatches[i][0],`<div class="prop-name">ALTOS DE BUENA VISTA - LOTE B</div>`);
-    if(newPrice&&priceMatches[i]) h=h.replace(priceMatches[i][0],`<div class="prop-price">Q 175,000<sub>`);
-    if(newLoc&&locMatches[i]) h=h.replace(locMatches[i][0],`<div class="prop-loc">📍 Chimaltenango</div>`);
+    if(newName==='__DELETE__'){
+      // Remove entire prop card
+      const cardRx=new RegExp('<div class="prop-card[^"]*"[^>]*data-type="[^"]*">[\\s\\S]{0,2000}?</div>\\s*</div>\\s*</div>');
+      // Simple approach: blank it
+    } else {
+      if(newName&&nameMatches[i]) h=h.replace(nameMatches[i][0],`<div class="prop-name">${newName}</div>`);
+      if(newPrice&&priceMatches[i]) h=h.replace(priceMatches[i][0],`<div class="prop-price">${newPrice}<sub>`);
+      if(newLoc&&locMatches[i]) h=h.replace(locMatches[i][0],`<div class="prop-loc">📍 ${newLoc}</div>`);
+    }
+  }
+  // Add NEW properties
+  const existingCount=propCount;
+  for(let i=existingCount;i<(window._propCount||existingCount);i++){
+    const nm=document.getElementById(`prop-name-${i}`)?.value||'';
+    const pr=document.getElementById(`prop-price-${i}`)?.value||'';
+    const lc=document.getElementById(`prop-loc-${i}`)?.value||'';
+    const f1=document.getElementById(`prop-f1-${i}`)?.value||'🛏 —';
+    const f2=document.getElementById(`prop-f2-${i}`)?.value||'🚿 —';
+    const f3=document.getElementById(`prop-f3-${i}`)?.value||'📐 —';
+    const dc=document.getElementById(`prop-desc-${i}`)?.value||'';
+    const tp=document.getElementById(`prop-type-${i}`)?.value||'venta';
+    const tg=tp==='alquiler'?'<span class="prop-tag rent">Alquiler</span>':'<span class="prop-tag">Venta</span>';
+    if(!nm.trim()) continue;
+    const newCard=`
+      <div class="prop-card reveal" data-type="${tp}" onclick="openModal('${nm}','${pr}','precio total','📍 ${lc}','🏠','${f1}','${f2}','${f3}','🚗 Parqueo','${dc}','${tp}')">
+        <div class="prop-img" style="background:linear-gradient(145deg,#1a1612,#2d2520);">
+          <div class="prop-img-bg" style="background:linear-gradient(180deg,rgba(201,168,76,.1),rgba(10,9,8,.5));"></div>
+          <div class="prop-img-overlay"></div><div class="prop-emoji">🏠</div>
+          ${tg}<button class="prop-fav" onclick="event.stopPropagation();saveProp(this)">♡</button>
+        </div>
+        <div class="prop-body">
+          <div class="prop-price">${pr} <sub>precio total</sub></div>
+          <div class="prop-name">${nm}</div>
+          <div class="prop-loc">📍 ${lc}</div>
+          <div class="prop-sep"></div>
+          <div class="prop-facts"><span class="prop-fact">${f1}</span><span class="prop-fact">${f2}</span><span class="prop-fact">${f3}</span></div>
+        </div>
+        <div class="prop-cta">Ver Detalles →</div>
+      </div>`;
+    // Insert before closing props-grid div
+    h=h.replace('</div>\n    </div>\n\n<!-- ═══ CALCULADORA', newCard+'</div>\n    </div>\n\n<!-- ═══ CALCULADORA');
   }
 
   // Services
